@@ -1,0 +1,35 @@
+Funciones generales:
+. Calculadora de aproximación
+. Discos en barra, (en general con un peso y la opción de calcular si se pone un ejercicio que sea solo con barra)
+. Anotar rpe o @
+Calculadora de 1RM
+Calculadora de repeticiones con peso 1RM base
+Temporizador de descanso
+Progresiones de rutinas (complejo, a tener en cuenta)
+
+Funciones principales: 
+Guardar rutina, 
+Que el usuario guarde una rutina de su entrenamiento del día. Que guarde los ejercicios por orden de ejecutamiento, que cada ejercicio guarde, la cantidad de serie por ejercicio, la cantidad de repeticiones por serie, el peso por serie, y el rpe por serie(no obligatorio).
+
+Calculadora de aproximación-
+Que el usuario ingrese un peso, las repeticiones y el rpe que va a hacer en su sesión, el sistema le dará unas series de aproximación para que el usuario llegue al peso indicado, ejemplo:
+	-El usuario ingresa peso de 150 a 6 repeticiones con un rpe de 9
+	-El sistema devuelve:	
+	-1 serie: 20kg - 12 repeticiones (ejemplo)
+	-2 serie: 70kg - 8 repeticiones (ejemplo)
+	-3 serie: 107.5kg - 6 repeticiones (ejemplo)
+	-...
+	-2 serie: 120kg - 6 repeticiones (final)
+
+Calculadora de discos en barra:
+Que el usuario ingrese un peso en un ejercicio ejecutado en barra solamente, teniendo en cuenta los pesos de los discos que este tiene disponible en su gimnasio,( como es powerlifting, por predeterminado usaremos las calibradas) que haya un botón en la barra principal solo para esta función. Y además, que si el ejercicio en la rutina es especial de barra, que se implemente el botón para acceder a esta función, si es un ejercicio que no requiera de una barra, no se mostrará este botón.
+
+Calculadora de 1RM:
+
+
+
+Funciones en seguno plano:
+
+
+
+
