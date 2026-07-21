@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import Calculadora1RM from './Calculadora1RM';
 import CalculadoraDiscos from './CalculadoraDiscos';
 import CalculadoraAproximacion from './CalculadoraAproximacion';
+import ModuloCompetencia from './ModuloCompetencia';
 
 export default function Herramientas() {
-  const [subTab, setSubTab] = useState<'1rm' | 'discos' | 'aproximacion'>('1rm');
+  const [subTab, setSubTab] = useState<'1rm' | 'discos' | 'aproximacion' | 'competencia'>('1rm');
 
   return (
     <div className="fade-in" style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -20,7 +21,10 @@ export default function Herramientas() {
             fontSize: '11px',
             fontWeight: 'bold',
             backgroundColor: subTab === '1rm' ? 'var(--accent-indigo)' : 'transparent',
-            color: subTab === '1rm' ? 'white' : 'var(--text-secondary)'
+            color: subTab === '1rm' ? 'white' : 'var(--text-secondary)',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
           }}
         >
           1RM
@@ -34,7 +38,10 @@ export default function Herramientas() {
             fontSize: '11px',
             fontWeight: 'bold',
             backgroundColor: subTab === 'discos' ? 'var(--accent-indigo)' : 'transparent',
-            color: subTab === 'discos' ? 'white' : 'var(--text-secondary)'
+            color: subTab === 'discos' ? 'white' : 'var(--text-secondary)',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
           }}
         >
           Discos
@@ -48,10 +55,30 @@ export default function Herramientas() {
             fontSize: '11px',
             fontWeight: 'bold',
             backgroundColor: subTab === 'aproximacion' ? 'var(--accent-indigo)' : 'transparent',
-            color: subTab === 'aproximacion' ? 'white' : 'var(--text-secondary)'
+            color: subTab === 'aproximacion' ? 'white' : 'var(--text-secondary)',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
           }}
         >
           Calentamiento
+        </button>
+        <button
+          onClick={() => setSubTab('competencia')}
+          style={{
+            flex: 1,
+            padding: '8px 2px',
+            borderRadius: '7px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            backgroundColor: subTab === 'competencia' ? 'var(--accent-indigo)' : 'transparent',
+            color: subTab === 'competencia' ? 'white' : 'var(--text-secondary)',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          Competencia
         </button>
       </div>
 
@@ -59,6 +86,7 @@ export default function Herramientas() {
       {subTab === '1rm' && <Calculadora1RM />}
       {subTab === 'discos' && <CalculadoraDiscos />}
       {subTab === 'aproximacion' && <CalculadoraAproximacion />}
+      {subTab === 'competencia' && <ModuloCompetencia />}
 
     </div>
   );
