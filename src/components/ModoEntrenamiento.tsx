@@ -9,12 +9,18 @@ interface ModoEntrenamientoProps {
   onFinalizar: () => void;
   onCancelar: () => void;
   onSalir: () => void;
+  tiempoDescanso: number;
+  timerActivo: boolean;
+  onIniciarDescanso: (segundos: number) => void;
+  onPararDescanso: () => void;
+  onSetTiempoDescanso: (seg: number) => void;
 }
 
-export default function ModoEntrenamiento({ sesion, onActualizarSesion, onFinalizar, onCancelar, onSalir }: ModoEntrenamientoProps) {
+export default function ModoEntrenamiento({
+  sesion, onActualizarSesion, onFinalizar, onCancelar, onSalir,
+  tiempoDescanso, timerActivo, onIniciarDescanso, onPararDescanso, onSetTiempoDescanso
+}: ModoEntrenamientoProps) {
   const [ejercicios, setEjercicios] = useState<EjercicioRutinaGuardado[]>(sesion.ejercicios);
-  const [tiempoDescanso, setTiempoDescanso] = useState<number>(0);
-  const [timerActivo, setTimerActivo] = useState<boolean>(false);
 
   const [catalogo, setCatalogo] = useState<Ejercicio[]>([]);
   const [mostrarCatalogoModal, setMostrarCatalogoModal] = useState<boolean>(false);
@@ -26,24 +32,8 @@ export default function ModoEntrenamiento({ sesion, onActualizarSesion, onFinali
   }, []);
 
   useEffect(() => {
-    let intervalo: any = null;
-    if (timerActivo && tiempoDescanso > 0) {
-      intervalo = setInterval(() => setTiempoDescanso((prev) => prev - 1), 1000);
-    } else if (tiempoDescanso === 0) {
-      setTimerActivo(false);
-      clearInterval(intervalo);
-    }
-    return () => clearInterval(intervalo);
-  }, [timerActivo, tiempoDescanso]);
-
-  useEffect(() => {
     onActualizarSesion(ejercicios);
   }, [ejercicios]);
-
-  const iniciarDescanso = (segundos: number) => {
-    setTiempoDescanso(segundos);
-    setTimerActivo(true);
-  };
 
   const toggleSerieCompletada = (ejIdx: number, serIdx: number) => {
     const nuevosEjercicios = [...ejercicios];
@@ -52,7 +42,7 @@ export default function ModoEntrenamiento({ sesion, onActualizarSesion, onFinali
     setEjercicios(nuevosEjercicios);
 
     if (!estadoActual) {
-      iniciarDescanso(180);
+      onIniciarDescanso(180);
     }
   };
 
@@ -121,12 +111,6 @@ export default function ModoEntrenamiento({ sesion, onActualizarSesion, onFinali
     } catch (error) {
       console.error('Error al guardar sesion:', error);
     }
-  };
-
-  const formatearTiempo = (seg: number) => {
-    const m = Math.floor(seg / 60);
-    const s = seg % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   const catalogoFiltrado = busquedaCatalogo.trim()
@@ -198,16 +182,16 @@ export default function ModoEntrenamiento({ sesion, onActualizarSesion, onFinali
             <p style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold', color: timerActivo ? '#c7d2fe' : 'var(--text-secondary)' }}>
               Descanso
             </p>
-            <p style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: 'white' }}>{formatearTiempo(tiempoDescanso)}</p>
+            <p style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: 'white' }}>{Math.floor(tiempoDescanso / 60)}:{tiempoDescanso % 60 < 10 ? '0' : ''}{tiempoDescanso % 60}</p>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '4px' }}>
-          <button onClick={() => iniciarDescanso(60)} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>+1m</button>
-          <button onClick={() => iniciarDescanso(120)} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>+2m</button>
-          <button onClick={() => iniciarDescanso(180)} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>+3m</button>
+          <button onClick={() => onIniciarDescanso(60)} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>+1m</button>
+          <button onClick={() => onIniciarDescanso(120)} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>+2m</button>
+          <button onClick={() => onIniciarDescanso(180)} style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>+3m</button>
           {tiempoDescanso > 0 && (
-            <button onClick={() => setTiempoDescanso(0)} style={{ backgroundColor: 'var(--accent-red-glow)', border: '1px solid var(--accent-red)', color: 'var(--accent-red)', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>Parar</button>
+            <button onClick={onPararDescanso} style={{ backgroundColor: 'var(--accent-red-glow)', border: '1px solid var(--accent-red)', color: 'var(--accent-red)', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>Parar</button>
           )}
         </div>
       </div>

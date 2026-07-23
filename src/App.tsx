@@ -5,7 +5,7 @@ import HistorialEntrenamientos from './components/HistorialEntrenamientos';
 import Herramientas from './components/Herramientas';
 import Perfil from './components/Perfil';
 import ModoEntrenamiento from './components/ModoEntrenamiento';
-import { HomeIcon, RoutinesIcon, HistoryIcon, ToolsIcon, ProfileIcon, PlayIcon } from './components/Icons';
+import { HomeIcon, RoutinesIcon, HistoryIcon, ToolsIcon, ProfileIcon, PlayIcon, TimerIcon } from './components/Icons';
 import { db, Rutina, EjercicioRutinaGuardado, SesionActiva } from './db/db';
 
 type TabType = 'inicio' | 'rutinas' | 'historial' | 'herramientas' | 'perfil';
@@ -15,9 +15,23 @@ export default function App() {
   const [sesionActiva, setSesionActiva] = useState<SesionActiva | null>(null);
   const [mostrandoEntrenamiento, setMostrandoEntrenamiento] = useState<boolean>(false);
 
+  const [tiempoDescanso, setTiempoDescanso] = useState<number>(0);
+  const [timerActivo, setTimerActivo] = useState<boolean>(false);
+
   useEffect(() => {
     cargarSesionActiva();
   }, []);
+
+  useEffect(() => {
+    let intervalo: any = null;
+    if (timerActivo && tiempoDescanso > 0) {
+      intervalo = setInterval(() => setTiempoDescanso((prev) => prev - 1), 1000);
+    } else if (tiempoDescanso === 0 && timerActivo) {
+      setTimerActivo(false);
+      clearInterval(intervalo);
+    }
+    return () => clearInterval(intervalo);
+  }, [timerActivo, tiempoDescanso]);
 
   const cargarSesionActiva = async () => {
     try {
@@ -76,6 +90,8 @@ export default function App() {
     await db.sesionActiva.clear();
     setSesionActiva(null);
     setMostrandoEntrenamiento(false);
+    setTimerActivo(false);
+    setTiempoDescanso(0);
   }, []);
 
   const cancelarSesion = useCallback(async () => {
@@ -83,6 +99,8 @@ export default function App() {
     await db.sesionActiva.clear();
     setSesionActiva(null);
     setMostrandoEntrenamiento(false);
+    setTimerActivo(false);
+    setTiempoDescanso(0);
   }, []);
 
   const continuarSesion = useCallback(() => {
@@ -92,6 +110,12 @@ export default function App() {
   const navegarA = (tab: TabType) => {
     setMostrandoEntrenamiento(false);
     setTabActiva(tab);
+  };
+
+  const formatearTiempo = (seg: number) => {
+    const m = Math.floor(seg / 60);
+    const s = seg % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   return (
@@ -106,6 +130,11 @@ export default function App() {
             onFinalizar={finalizarSesion}
             onCancelar={cancelarSesion}
             onSalir={() => setMostrandoEntrenamiento(false)}
+            tiempoDescanso={tiempoDescanso}
+            timerActivo={timerActivo}
+            onIniciarDescanso={(s) => { setTiempoDescanso(s); setTimerActivo(true); }}
+            onPararDescanso={() => { setTiempoDescanso(0); setTimerActivo(false); }}
+            onSetTiempoDescanso={setTiempoDescanso}
           />
         ) : (
           <>
@@ -129,6 +158,16 @@ export default function App() {
               {sesionActiva.rutina.nombre}
             </span>
           </div>
+
+          {timerActivo && tiempoDescanso > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              <TimerIcon size={14} color="#c7d2fe" />
+              <span style={{ fontSize: '14px', fontWeight: '900', color: '#c7d2fe', fontVariantNumeric: 'tabular-nums' }}>
+                {formatearTiempo(tiempoDescanso)}
+              </span>
+            </div>
+          )}
+
           <button
             onClick={continuarSesion}
             className="btn-primary"

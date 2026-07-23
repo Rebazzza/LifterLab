@@ -305,7 +305,7 @@ export default function ModuloCompetencia() {
 
       <div className="card-premium">
         <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'white', marginBottom: '12px', textAlign: 'center' }}>
-          🏆 Planificador Estratégico de Competencia
+    Planificador Estratégico de Competencia
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
