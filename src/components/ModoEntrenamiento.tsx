@@ -13,12 +13,11 @@ interface ModoEntrenamientoProps {
   timerActivo: boolean;
   onIniciarDescanso: (segundos: number) => void;
   onPararDescanso: () => void;
-  onSetTiempoDescanso: (seg: number) => void;
 }
 
 export default function ModoEntrenamiento({
   sesion, onActualizarSesion, onFinalizar, onCancelar, onSalir,
-  tiempoDescanso, timerActivo, onIniciarDescanso, onPararDescanso, onSetTiempoDescanso
+  tiempoDescanso, timerActivo, onIniciarDescanso, onPararDescanso
 }: ModoEntrenamientoProps) {
   const [ejercicios, setEjercicios] = useState<EjercicioRutinaGuardado[]>(sesion.ejercicios);
 

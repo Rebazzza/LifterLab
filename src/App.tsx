@@ -5,8 +5,12 @@ import HistorialEntrenamientos from './components/HistorialEntrenamientos';
 import Herramientas from './components/Herramientas';
 import Perfil from './components/Perfil';
 import ModoEntrenamiento from './components/ModoEntrenamiento';
+import ModalAuth from './components/ModalAuth';
 import { HomeIcon, RoutinesIcon, HistoryIcon, ToolsIcon, ProfileIcon, PlayIcon, TimerIcon } from './components/Icons';
 import { db, Rutina, EjercicioRutinaGuardado, SesionActiva } from './db/db';
+import { supabase } from './lib/supabase';
+import { probarConexionSupabase } from './utils/testSupabase';
+import { Session } from '@supabase/supabase-js';
 
 type TabType = 'inicio' | 'rutinas' | 'historial' | 'herramientas' | 'perfil';
 
@@ -17,6 +21,27 @@ export default function App() {
 
   const [tiempoDescanso, setTiempoDescanso] = useState<number>(0);
   const [timerActivo, setTimerActivo] = useState<boolean>(false);
+
+  const [authSession, setAuthSession] = useState<Session | null>(null);
+  const [cargandoAuth, setCargandoAuth] = useState<boolean>(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthSession(session);
+      setCargandoAuth(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Comprobar la conexión con Supabase al iniciar la App
+  useEffect(() => {
+    probarConexionSupabase();
+  }, []);
 
   useEffect(() => {
     cargarSesionActiva();
@@ -95,7 +120,7 @@ export default function App() {
   }, []);
 
   const cancelarSesion = useCallback(async () => {
-    if (!window.confirm('Cancelar entrenamiento? Los cambios no se guardaran en el historial.')) return;
+    if (!window.confirm('¿Cancelar entrenamiento? Los cambios no se guardarán en el historial.')) return;
     await db.sesionActiva.clear();
     setSesionActiva(null);
     setMostrandoEntrenamiento(false);
@@ -118,6 +143,22 @@ export default function App() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  // Pantalla de carga inicial de autenticacion
+  if (cargandoAuth) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', width: '100%', backgroundColor: 'var(--bg-obsidian)' }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          Cargando...
+        </p>
+      </div>
+    );
+  }
+
+  // Si no hay sesion, mostrar el modal de login/registro
+  if (!authSession) {
+    return <ModalAuth onAutenticado={() => {}} />;
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
 
@@ -134,7 +175,6 @@ export default function App() {
             timerActivo={timerActivo}
             onIniciarDescanso={(s) => { setTiempoDescanso(s); setTimerActivo(true); }}
             onPararDescanso={() => { setTiempoDescanso(0); setTimerActivo(false); }}
-            onSetTiempoDescanso={setTiempoDescanso}
           />
         ) : (
           <>
@@ -147,7 +187,7 @@ export default function App() {
         )}
       </div>
 
-      {/* Barra de Sesion Activa Flotante */}
+      {/* Barra de Sesión Activa Flotante */}
       {sesionActiva && !mostrandoEntrenamiento && (
         <div className="floating-workout-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
@@ -179,7 +219,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Barra de Navegacion Inferior */}
+      {/* Barra de Navegación Inferior */}
       <div className="bottom-nav">
         <button
           onClick={() => navegarA('inicio')}
