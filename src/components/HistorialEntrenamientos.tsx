@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, SesionCompletada } from '../db/db';
+import { SesionCompletada } from '../db/db';
 import { TrashIcon, BarbellIcon, CalendarIcon } from './Icons';
+import { cargarHistorialDeSupabase, eliminarSesionDeSupabase } from '../lib/api';
 
 export default function HistorialEntrenamientos() {
   const [historial, setHistorial] = useState<SesionCompletada[]>([]);
@@ -12,7 +13,7 @@ export default function HistorialEntrenamientos() {
 
   const cargarHistorial = async () => {
     try {
-      const datos = await db.historial.reverse().toArray();
+      const datos = await cargarHistorialDeSupabase();
       setHistorial(datos);
     } catch (error) {
       console.error('Error al cargar historial:', error);
@@ -21,11 +22,11 @@ export default function HistorialEntrenamientos() {
     }
   };
 
-  const eliminarSesion = async (id?: number) => {
+  const eliminarSesion = async (id?: number | string) => {
     if (!id) return;
     if (window.confirm('Eliminar este registro del historial?')) {
       try {
-        await db.historial.delete(id);
+        await eliminarSesionDeSupabase(String(id));
         await cargarHistorial();
       } catch (error) {
         console.error('Error al eliminar registro:', error);

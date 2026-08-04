@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { db, Ejercicio, Rutina, EjercicioRutinaGuardado } from '../db/db';
 import { SearchIcon, ChevronDownIcon, PlusIcon, TrashIcon, SaveIcon, ClipboardIcon, XIcon, PlayIcon } from './Icons';
+import { cargarRutinasDeSupabase, guardarRutinaEnSupabase, eliminarRutinaEnSupabase } from '../lib/api';
 
 interface Serie {
   peso: string;
@@ -50,11 +51,16 @@ export default function GestionRutinas({ onIniciarSesion }: GestionRutinasProps)
   const cargarDatosBD = async () => {
     try {
       const listaEjercicios = await db.ejercicios.toArray();
-      const listaRutinas = await db.rutinas.toArray();
       setCatalogo(listaEjercicios);
+    } catch (error) {
+      console.error('Error al acceder al catalogo:', error);
+    }
+
+    try {
+      const listaRutinas = await cargarRutinasDeSupabase();
       setRutinasGuardadas(listaRutinas);
     } catch (error) {
-      console.error('Error al acceder a IndexedDB:', error);
+      console.error('Error al cargar rutinas desde Supabase:', error);
     }
   };
 
@@ -168,11 +174,11 @@ export default function GestionRutinas({ onIniciarSesion }: GestionRutinasProps)
     onIniciarSesion(rutina, ejerciciosParaSesion);
   };
 
-  const eliminarRutina = async (id?: number) => {
+  const eliminarRutina = async (id?: number | string) => {
     if (!id) return;
     if (window.confirm('Eliminar esta plantilla de rutina?')) {
       try {
-        await db.rutinas.delete(id);
+        await eliminarRutinaEnSupabase(String(id));
         await cargarDatosBD();
       } catch (err) {
         console.error('Error al eliminar rutina:', err);
@@ -191,21 +197,17 @@ export default function GestionRutinas({ onIniciarSesion }: GestionRutinasProps)
     }
 
     try {
-      await db.rutinas.add({
-        nombre: nombreRutina,
-        fechaCreacion: new Date().toLocaleDateString('es-ES'),
-        ejercicios: ejercicios.map(ej => ({
-          ejercicioId: ej.ejercicioId,
-          nombre: ej.nombre,
-          esConBarra: ej.esConBarra,
-          series: ej.series.map(s => ({
-            peso: s.peso,
-            reps: s.reps,
-            rpe: s.rpe,
-            porcentaje: s.porcentaje
-          }))
+      await guardarRutinaEnSupabase(nombreRutina, ejercicios.map(ej => ({
+        nombre: ej.nombre,
+        esConBarra: ej.esConBarra,
+        usaRpe: ej.usaRpe,
+        series: ej.series.map(s => ({
+          peso: s.peso,
+          reps: s.reps,
+          rpe: s.rpe,
+          porcentaje: s.porcentaje
         }))
-      });
+      })));
 
       setNombreRutina('');
       setEjercicios([]);

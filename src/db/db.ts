@@ -24,14 +24,14 @@ export interface EjercicioRutinaGuardado {
 }
 
 export interface Rutina {
-  id?: number;
+  id?: number | string;
   nombre: string;
   fechaCreacion: string;
   ejercicios: EjercicioRutinaGuardado[];
 }
 
 export interface SesionCompletada {
-  id?: number;
+  id?: number | string;
   rutinaNombre: string;
   fecha: string;
   ejercicios: EjercicioRutinaGuardado[];

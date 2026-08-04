@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, EjercicioRutinaGuardado, SerieGuardada, Ejercicio, SesionActiva } from '../db/db';
 import ModalCalculadoraDiscos from './ModalCalculadoraDiscos';
 import { CloseIcon, PlusIcon, TimerIcon, BarbellIcon, SearchIcon, CheckIcon, TrashIcon } from './Icons';
+import { guardarSesionEnSupabase } from '../lib/api';
 
 interface ModoEntrenamientoProps {
   sesion: SesionActiva;
@@ -25,6 +26,7 @@ export default function ModoEntrenamiento({
   const [mostrarCatalogoModal, setMostrarCatalogoModal] = useState<boolean>(false);
   const [busquedaCatalogo, setBusquedaCatalogo] = useState<string>('');
   const [pesoCalculadoraModal, setPesoCalculadoraModal] = useState<number | null>(null);
+  const [guardando, setGuardando] = useState<boolean>(false);
 
   useEffect(() => {
     db.ejercicios.toArray().then(setCatalogo);
@@ -100,15 +102,16 @@ export default function ModoEntrenamiento({
   };
 
   const guardarSesion = async () => {
+    if (guardando) return;
+    setGuardando(true);
     try {
-      await db.historial.add({
-        rutinaNombre: sesion.rutina.nombre,
-        fecha: new Date().toLocaleString('es-ES'),
-        ejercicios: ejercicios
-      });
+      await guardarSesionEnSupabase(sesion.rutina.nombre, ejercicios);
       onFinalizar();
     } catch (error) {
       console.error('Error al guardar sesion:', error);
+      alert('No se pudo guardar el entrenamiento. Verifica tu conexion.');
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -416,7 +419,7 @@ export default function ModoEntrenamiento({
         }}
       >
         <CheckIcon size={18} color="white" />
-        <span>Finalizar Entrenamiento</span>
+        <span>{guardando ? 'Guardando...' : 'Finalizar Entrenamiento'}</span>
       </button>
 
     </div>

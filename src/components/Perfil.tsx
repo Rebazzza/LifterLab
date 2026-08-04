@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, Ejercicio } from '../db/db';
 import { TrophyIcon, BarbellIcon, PlusIcon, FolderIcon, ChevronDownIcon } from './Icons';
+import { cargarHistorialDeSupabase } from '../lib/api';
 
 interface RecordEjercicio {
   nombre: string;
@@ -33,7 +34,7 @@ export default function Perfil() {
 
   const cargarDatosPerfil = async () => {
     try {
-      const historial = await db.historial.toArray();
+      const historial = await cargarHistorialDeSupabase();
       const catalogo = await db.ejercicios.toArray();
       setEjerciciosCustom(catalogo);
 

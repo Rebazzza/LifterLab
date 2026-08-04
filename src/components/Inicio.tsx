@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, SesionCompletada } from '../db/db';
+import { SesionCompletada } from '../db/db';
 import { BarbellIcon, PlayIcon, HistoryIcon, ProfileIcon, ToolsIcon } from './Icons';
+import { cargarHistorialDeSupabase } from '../lib/api';
 
 interface InicioProps {
   setTabActiva: (tab: 'inicio' | 'rutinas' | 'historial' | 'herramientas' | 'perfil') => void;
@@ -34,11 +35,11 @@ export default function Inicio({ setTabActiva }: InicioProps) {
 
   const cargarDatosDashboard = async () => {
     try {
-      const historialArr = await db.historial.toArray();
+      const historialArr = await cargarHistorialDeSupabase();
       setTotalSesiones(historialArr.length);
 
       if (historialArr.length > 0) {
-        setReciente(historialArr[historialArr.length - 1]);
+        setReciente(historialArr[0]);
       }
 
       const nuevosPrs: PRsInfo = {

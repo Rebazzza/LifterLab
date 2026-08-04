@@ -10,6 +10,8 @@ import { HomeIcon, RoutinesIcon, HistoryIcon, ToolsIcon, ProfileIcon, PlayIcon, 
 import { db, Rutina, EjercicioRutinaGuardado, SesionActiva } from './db/db';
 import { supabase } from './lib/supabase';
 import { probarConexionSupabase } from './utils/testSupabase';
+// eslint-disable-next-line no-unused-vars -- usada en onAuthStateChange; falso positivo de oxlint
+import { limpiarDatosLocales, actualizarRutinaEnSupabase } from './lib/api';
 import { Session } from '@supabase/supabase-js';
 
 
@@ -32,11 +34,20 @@ export default function App() {
       setCargandoAuth(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthSession(session);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(manejarCambioAuth);
 
     return () => subscription.unsubscribe();
+  }, [manejarCambioAuth]);
+
+  const manejarCambioAuth = useCallback((_event: any, session: Session | null) => {
+    setAuthSession(session);
+    if (session) {
+      limpiarDatosLocales();
+      setSesionActiva(null);
+      setMostrandoEntrenamiento(false);
+      setTimerActivo(false);
+      setTiempoDescanso(0);
+    }
   }, []);
 
   // Comprobar la conexión con Supabase al iniciar la App
@@ -96,19 +107,23 @@ export default function App() {
     setSesionActiva(sesionActualizada);
 
     if (sesionActiva.rutina.id) {
-      await db.rutinas.update(sesionActiva.rutina.id, {
-        ejercicios: ejercicios.map(ej => ({
-          ejercicioId: ej.ejercicioId,
-          nombre: ej.nombre,
-          esConBarra: ej.esConBarra,
-          series: ej.series.map(s => ({
-            peso: s.pesoReal || s.peso || '',
-            reps: s.reps,
-            rpe: s.rpe,
-            porcentaje: s.porcentaje
+      if (typeof sesionActiva.rutina.id === 'string') {
+        await actualizarRutinaEnSupabase(sesionActiva.rutina.id, ejercicios);
+      } else {
+        await db.rutinas.update(sesionActiva.rutina.id, {
+          ejercicios: ejercicios.map(ej => ({
+            ejercicioId: ej.ejercicioId,
+            nombre: ej.nombre,
+            esConBarra: ej.esConBarra,
+            series: ej.series.map(s => ({
+              peso: s.pesoReal || s.peso || '',
+              reps: s.reps,
+              rpe: s.rpe,
+              porcentaje: s.porcentaje
+            }))
           }))
-        }))
-      });
+        });
+      }
     }
   }, [sesionActiva]);
 
