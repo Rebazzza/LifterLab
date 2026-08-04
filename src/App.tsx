@@ -12,6 +12,7 @@ import { supabase } from './lib/supabase';
 import { probarConexionSupabase } from './utils/testSupabase';
 import { Session } from '@supabase/supabase-js';
 
+
 type TabType = 'inicio' | 'rutinas' | 'historial' | 'herramientas' | 'perfil';
 
 export default function App() {
@@ -136,6 +137,12 @@ export default function App() {
     setMostrandoEntrenamiento(false);
     setTabActiva(tab);
   };
+  const limpiarDatosLocales = async () => {
+  await db.rutinas.clear();
+  await db.sesionActiva.clear();
+  // Limpia cualquier otra tabla que tengas en db/db.ts
+  console.log('🧹 Datos locales de IndexedDB eliminados');
+};
 
   const formatearTiempo = (seg: number) => {
     const m = Math.floor(seg / 60);
