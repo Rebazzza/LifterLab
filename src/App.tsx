@@ -10,10 +10,8 @@ import { HomeIcon, RoutinesIcon, HistoryIcon, ToolsIcon, ProfileIcon, PlayIcon, 
 import { db, Rutina, EjercicioRutinaGuardado, SesionActiva } from './db/db';
 import { supabase } from './lib/supabase';
 import { probarConexionSupabase } from './utils/testSupabase';
-// eslint-disable-next-line no-unused-vars -- usada en onAuthStateChange; falso positivo de oxlint
 import { limpiarDatosLocales, actualizarRutinaEnSupabase } from './lib/api';
 import { Session } from '@supabase/supabase-js';
-
 
 type TabType = 'inicio' | 'rutinas' | 'historial' | 'herramientas' | 'perfil';
 
@@ -28,17 +26,6 @@ export default function App() {
   const [authSession, setAuthSession] = useState<Session | null>(null);
   const [cargandoAuth, setCargandoAuth] = useState<boolean>(true);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthSession(session);
-      setCargandoAuth(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(manejarCambioAuth);
-
-    return () => subscription.unsubscribe();
-  }, [manejarCambioAuth]);
-
   const manejarCambioAuth = useCallback((_event: any, session: Session | null) => {
     setAuthSession(session);
     if (session) {
@@ -49,6 +36,19 @@ export default function App() {
       setTiempoDescanso(0);
     }
   }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthSession(session);
+      setCargandoAuth(false);
+    }).catch(() => {
+      setCargandoAuth(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(manejarCambioAuth);
+
+    return () => subscription.unsubscribe();
+  }, [manejarCambioAuth]);
 
   // Comprobar la conexión con Supabase al iniciar la App
   useEffect(() => {
@@ -152,12 +152,6 @@ export default function App() {
     setMostrandoEntrenamiento(false);
     setTabActiva(tab);
   };
-  const limpiarDatosLocales = async () => {
-  await db.rutinas.clear();
-  await db.sesionActiva.clear();
-  // Limpia cualquier otra tabla que tengas en db/db.ts
-  console.log('🧹 Datos locales de IndexedDB eliminados');
-};
 
   const formatearTiempo = (seg: number) => {
     const m = Math.floor(seg / 60);
