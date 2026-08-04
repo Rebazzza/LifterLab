@@ -258,3 +258,80 @@ export async function eliminarSesionDeSupabase(id: string): Promise<void> {
   const { error } = await supabase.from('sesiones').delete().eq('id', id);
   if (error) throw error;
 }
+
+// ============================================================
+// PERFIL Y CONFIGURACION DE USUARIO
+// ============================================================
+
+export interface PerfilUsuario {
+  nombre: string;
+  email: string;
+  unidadPeso: string;
+  pesoCorporal: number | null;
+  alturaCm: number | null;
+  genero: string;
+}
+
+export interface ConfigUsuario {
+  sonidos: boolean;
+  notificaciones: boolean;
+}
+
+export async function cargarPerfilUsuario(): Promise<{ perfil: PerfilUsuario; config: ConfigUsuario }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No hay sesion iniciada');
+
+  const { data: perfil, error: err1 } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+  if (err1 && err1.code !== 'PGRST116') throw err1;
+
+  const { data: config, error: err2 } = await supabase
+    .from('config_usuario')
+    .select('*')
+    .eq('usuario_id', user.id)
+    .single();
+  if (err2 && err2.code !== 'PGRST116') throw err2;
+
+  return {
+    perfil: {
+      nombre: perfil?.nombre || user.user_metadata?.nombre || user.email?.split('@')[0] || 'Usuario',
+      email: user.email || '',
+      unidadPeso: perfil?.unidad_peso || 'kg',
+      pesoCorporal: perfil?.peso_corporal ?? null,
+      alturaCm: perfil?.altura_cm ?? null,
+      genero: perfil?.genero || 'masculino'
+    },
+    config: {
+      sonidos: config?.sonidos ?? true,
+      notificaciones: config?.notificaciones ?? false
+    }
+  };
+}
+
+export async function guardarPerfilUsuario(datos: Partial<PerfilUsuario>): Promise<void> {
+  const userId = await getUserId();
+  const { error } = await supabase.from('profiles').upsert({
+    id: userId,
+    nombre: datos.nombre ?? undefined,
+    unidad_peso: datos.unidadPeso ?? undefined,
+    peso_corporal: datos.pesoCorporal ?? null,
+    altura_cm: datos.alturaCm ?? null,
+    genero: datos.genero ?? undefined,
+    updated_at: new Date().toISOString()
+  });
+  if (error) throw error;
+}
+
+export async function guardarConfigUsuario(config: ConfigUsuario): Promise<void> {
+  const userId = await getUserId();
+  const { error } = await supabase.from('config_usuario').upsert({
+    usuario_id: userId,
+    sonidos: config.sonidos,
+    notificaciones: config.notificaciones,
+    updated_at: new Date().toISOString()
+  });
+  if (error) throw error;
+}
